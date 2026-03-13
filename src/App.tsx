@@ -53,15 +53,33 @@ export default function App() {
     setIsGenerating(true);
     try {
       const canvas = await html2canvas(envelopeRef.current, {
-        scale: 3, // Higher scale for better quality
+        scale: 3,
         useCORS: true,
         logging: false,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        onclone: (clonedDoc) => {
+          // 徹底解決 oklch 解析錯誤：
+          // html2canvas 會掃描所有樣式表，我們必須移除或替換掉暫存文件中的 oklch 函數
+          const styleTags = clonedDoc.getElementsByTagName('style');
+          for (let i = 0; i < styleTags.length; i++) {
+            const tag = styleTags[i];
+            if (tag.innerHTML.includes('oklch')) {
+              // 將所有 oklch(...) 替換為透明或黑色，避免解析失敗
+              tag.innerHTML = tag.innerHTML.replace(/oklch\([^)]+\)/g, 'rgba(0,0,0,0.1)');
+            }
+          }
+          
+          const el = clonedDoc.getElementById('envelope-preview');
+          if (el) {
+            el.style.boxShadow = 'none';
+            el.style.transform = 'none';
+          }
+        }
       });
       
       const imgData = canvas.toDataURL('image/png');
       
-      // Envelope size: 100mm x 200mm
+      // 收費袋尺寸: 100mm x 200mm
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
@@ -220,18 +238,18 @@ export default function App() {
           >
             {/* Title */}
             <div className="text-center mb-8">
-              <h2 style={{ borderBottom: '2px solid #000000' }} className="text-2xl font-bold tracking-widest pb-2 inline-block">
+              <h2 style={{ borderBottom: '2px solid #000000', color: '#000000' }} className="text-2xl font-bold tracking-widest pb-2 inline-block">
                 創想天地收費袋
               </h2>
             </div>
 
             {/* Basic Info */}
-            <div className="space-y-4 mb-8 text-lg">
-              <div style={{ borderBottom: '1px solid #d6d3d1' }} className="flex pb-1">
+            <div className="space-y-4 mb-8 text-lg text-black">
+              <div style={{ borderBottom: '1px solid #000000' }} className="flex pb-1">
                 <span className="font-bold w-20">班級：</span>
                 <span className="flex-1">{className || '________________'}</span>
               </div>
-              <div style={{ borderBottom: '1px solid #d6d3d1' }} className="flex pb-1">
+              <div style={{ borderBottom: '1px solid #000000' }} className="flex pb-1">
                 <span className="font-bold w-20">姓名：</span>
                 <span className="flex-1">{name || '________________'}</span>
               </div>
@@ -242,17 +260,17 @@ export default function App() {
               <table className="w-full border-collapse">
                 <thead>
                   <tr style={{ borderBottom: '2px solid #000000' }}>
-                    <th className="text-left py-2 font-bold">收費品項</th>
-                    <th className="text-right py-2 font-bold">金額</th>
+                    <th className="text-left py-2 font-bold text-black">收費品項</th>
+                    <th className="text-right py-2 font-bold text-black">金額</th>
                   </tr>
                 </thead>
                 <tbody>
                   {items.map((item, idx) => (
-                    <tr key={item.id} style={{ borderBottom: '1px solid #e7e5e4' }}>
-                      <td style={{ color: '#44403c' }} className="py-2">
+                    <tr key={item.id} style={{ borderBottom: '1px solid #a8a29e' }}>
+                      <td style={{ color: '#000000' }} className="py-2">
                         {item.name || `品項 ${idx + 1}`}
                       </td>
-                      <td className="py-2 text-right font-mono">
+                      <td className="py-2 text-right font-mono text-black">
                         $ {Number(item.amount).toLocaleString()}
                       </td>
                     </tr>
@@ -267,8 +285,8 @@ export default function App() {
                 </tbody>
                 <tfoot>
                   <tr>
-                    <td className="py-4 font-bold text-xl">總計金額</td>
-                    <td style={{ borderBottom: '4px double #000000' }} className="py-4 text-right font-bold text-2xl">
+                    <td className="py-4 font-bold text-xl text-black">總計金額</td>
+                    <td style={{ borderBottom: '4px double #000000' }} className="py-4 text-right font-bold text-2xl text-black">
                       $ {totalAmount.toLocaleString()}
                     </td>
                   </tr>
@@ -277,11 +295,11 @@ export default function App() {
             </div>
 
             {/* Bank Info and QR Codes */}
-            <div style={{ borderTop: '2px solid #e7e5e4' }} className="mt-auto pt-4">
+            <div style={{ borderTop: '2px solid #000000' }} className="mt-auto pt-4 text-black">
               <div className="text-center mb-4 space-y-1">
                 <p className="text-sm font-bold">可轉帳繳費 (013 國泰世華)</p>
-                <p style={{ backgroundColor: '#f5f5f4' }} className="text-base font-mono font-bold py-1 rounded tracking-wider">272035017798 語創有限公司</p>
-                <p style={{ color: '#57534e' }} className="text-[10px]">截圖繳費完成畫面，至官方Line確認繳費</p>
+                <p style={{ backgroundColor: '#f5f5f4', color: '#000000' }} className="text-base font-mono font-bold py-1 rounded tracking-wider">272035017798 語創有限公司</p>
+                <p style={{ color: '#000000' }} className="text-[10px] font-medium">截圖繳費完成畫面，至官方Line確認繳費</p>
               </div>
 
               <div className="flex justify-around items-end">
@@ -291,14 +309,14 @@ export default function App() {
                     <img 
                       src={qrCodeUrl} 
                       alt="Line Group QR Code" 
-                      style={{ backgroundColor: '#ffffff', border: '1px solid #e7e5e4' }}
+                      style={{ backgroundColor: '#ffffff', border: '1px solid #000000' }}
                       className="w-20 h-20 p-1"
                       referrerPolicy="no-referrer"
                     />
-                    <p className="text-[10px] mt-1 font-bold">LINE親師交流群</p>
+                    <p className="text-[10px] mt-1 font-bold text-black">LINE親師交流群</p>
                   </div>
                 ) : (
-                  <div style={{ border: '2px dashed #e7e5e4', color: '#d6d3d1' }} className="w-20 h-20 flex items-center justify-center text-[10px]">
+                  <div style={{ border: '2px dashed #000000', color: '#000000' }} className="w-20 h-20 flex items-center justify-center text-[10px]">
                     親師群 QR
                   </div>
                 )}
@@ -308,11 +326,11 @@ export default function App() {
                   <img 
                     src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https%3A%2F%2Flin.ee%2FxfMEuhv" 
                     alt="Official Line QR Code" 
-                    style={{ backgroundColor: '#ffffff', border: '1px solid #e7e5e4' }}
+                    style={{ backgroundColor: '#ffffff', border: '1px solid #000000' }}
                     className="w-20 h-20 p-1"
                     referrerPolicy="no-referrer"
                   />
-                  <p className="text-[10px] mt-1 font-bold">官方 LINE</p>
+                  <p className="text-[10px] mt-1 font-bold text-black">官方 LINE</p>
                 </div>
               </div>
             </div>
