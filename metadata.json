@@ -1,0 +1,5 @@
+{
+  "name": "收費袋資訊生成工具",
+  "description": "一個簡單的工具，用於生成實體收費袋的資訊模板，支援動態品項、自動合計與 QR Code 生成，並優化列印效果。",
+  "requestFramePermissions": []
+}

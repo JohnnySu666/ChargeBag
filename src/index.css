@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+@layer base {
+  @media print {
+    body {
+      background: white !important;
+      margin: 0;
+      padding: 0;
+    }
+    .no-print {
+      display: none !important;
+    }
+    .print-only {
+      display: block !important;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 10cm;
+      height: 20cm;
+      border: 1px solid black;
+      margin: 0;
+    }
+    /* Ensure the preview container is the only thing printed */
+    #envelope-preview {
+      margin: 0 !important;
+      box-shadow: none !important;
+      border: 1px solid black !important;
+    }
+  }
+}
+
+/* Custom styles for the envelope aspect ratio */
+.envelope-container {
+  width: 10cm;
+  height: 20cm;
+}
